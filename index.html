@@ -595,6 +595,18 @@
       </div>
     </div>
 
+    <div class="edit-h"><span>🌡</span>気温の目安（7/18–21）</div>
+    <div class="stat2">
+      <div class="statc" style="background:#8A3A2A"><div class="l">日中の最高</div><div class="v">29〜32℃</div><div class="s">直射日光下はもっと暑い</div></div>
+      <div class="statc" style="background:#2E5D86"><div class="l">朝晩の最低</div><div class="v">23〜25℃</div><div class="s">夜も蒸す熱帯夜</div></div>
+    </div>
+    <div class="wday">
+      <span class="we">🌅</span>
+      <div class="wd"><div class="dd">時間帯の目安</div><div class="cc">朝 約26℃ ／ 昼 約31℃ ／ 夜 約27℃</div></div>
+      <div class="wr"><div class="tp">湿度<br>80%+</div></div>
+    </div>
+    <div class="note"><span class="ni">🥵</span><div>湿度が高く<b>体感はさらに+2〜4℃</b>。日中は帽子・日傘・こまめな水分＆塩分補給を。逆に<b>屋内・地下鉄・バスの冷房は強い</b>ので羽織り1枚が必須です。</div></div>
+
     <div class="wday">
       <span class="we">🌧️</span>
       <div class="wd"><div class="dd">7/18(土) 到着</div><div class="cc">雨。夜到着なので傘をすぐ出せる位置に</div></div>
@@ -991,6 +1003,13 @@
       var v=lget(key);if(typeof v==='string')t.value=v;
       t.addEventListener('input',function(){lset(key,t.value)});
     });
+
+    // offline support: cache the page so it opens without internet (airplane mode)
+    try{
+      if('serviceWorker' in navigator && location.protocol==='https:'){
+        navigator.serviceWorker.register('sw.js').catch(function(){});
+      }
+    }catch(e){}
   })();
 </script>
 
