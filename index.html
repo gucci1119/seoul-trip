@@ -246,6 +246,9 @@
   body.editing .scard [contenteditable]{outline:1px dashed var(--line);border-radius:6px;padding:1px 4px}
   body.editing .scard [contenteditable]:focus{outline:2px solid var(--jade);background:var(--surface2)}
   body.editing .ci .tx[contenteditable]{outline:1px dashed var(--line);border-radius:6px;padding:0 3px}
+  body.editing [data-eid]{outline:1px dashed var(--border-eid,#b9a24d);border-radius:5px;cursor:text}
+  body.editing [data-eid]:focus{outline:2px solid var(--jade);background:var(--surface2);color:var(--ink)}
+  body.editing .hero [data-eid]:focus{background:rgba(255,255,255,.14);color:#fff}
   .addstop{display:none}
   body.editing .addstop{display:inline-flex;align-items:center;gap:5px;margin:2px 0 6px 0;
     font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--jade);
@@ -328,7 +331,7 @@
   <!-- ITINERARY -->
   <div class="panel on pad" id="itin" role="tabpanel">
     <div class="sect-h"><span class="ic">🗺</span><div><h2>行き先マップ</h2><p>明洞(★)が拠点。ピンの色＝何日目</p></div></div>
-    <p class="editmode-hint">✏️ 編集モード中：時間・タイトル・説明を直接タップで書き換え／各予定の ↑↓ で並び替え・✕ で削除・「＋予定を追加」で追加できます。右下の🔴で終了。</p>
+    <p class="editmode-hint">✏️ 編集モード中：<b>ページ内のどの文字もタップで直接書き換え</b>できます（日付・便名・ホテル・天気・予算・メモ等どこでも）。旅程は各予定の ↑↓ で並び替え・✕ で削除・「＋予定を追加」も。右下の🔴で終了。変更はこの端末に保存（同期ONなら二人で共有）。</p>
     <div class="mapcard">
       <svg viewBox="0 0 340 300" width="100%" role="img" aria-label="ソウル中心部の行き先マップ">
         <rect x="0" y="0" width="340" height="300" fill="var(--surface2)" rx="8"/>
@@ -1027,6 +1030,7 @@
     function applyEditable(on){
       document.querySelectorAll('#itin [data-ce]').forEach(function(el){el.contentEditable=on?'true':'false';});
       document.querySelectorAll('.clist[data-custom] .citems .tx').forEach(function(tx){tx.contentEditable=on?'true':'false';});
+      document.querySelectorAll('[data-eid]').forEach(function(el){el.contentEditable=on?'true':'false';});
     }
     function setEditing(on){editing=on;document.body.classList.toggle('editing',on);if(editBtn)editBtn.textContent=on?'✓ 完了':'✏️ 編集';applyEditable(on);}
     if(editBtn)editBtn.addEventListener('click',function(){setEditing(!editing);});
@@ -1150,6 +1154,34 @@
       var addBtn=document.createElement('button');addBtn.type='button';addBtn.className='addstop';addBtn.textContent='＋ 予定を追加';
       addBtn.addEventListener('click',function(){var id='a'+di+'_'+uid();var data={id:id,time:'時間',title:'新しい予定',desc:''};itin.added['d'+di]=itin.added['d'+di]||[];itin.added['d'+di].push(data);var node=buildStop(id,data);tl.appendChild(node);addStopControls(node);wireEditable(node);recordOrders();itinSave();applyEditable(true);var h=node.querySelector('h4');if(h){h.focus();}});
       tl.parentNode.insertBefore(addBtn,tl.nextSibling);
+    });
+
+    // ---- universal in-place text editing (edit ANY text on the page) ----
+    var TEDIT='seoul-textedits-v1';
+    var tedits=lget(TEDIT)||{};
+    function isInline(tag){return ['B','STRONG','SMALL','SPAN','BR','I','EM','U','MARK','A'].indexOf(tag)>=0;}
+    function editableLeaf(el){
+      if(el.closest('.tabs,.editctl,.addrow,.addstop,.editToggle,.bookToggle,.syncbox,.citems,.btotal,.gh,.progress,.reset,.daybanner,svg'))return false;
+      var tag=el.tagName;
+      if(['BUTTON','INPUT','TEXTAREA','A','IMG','SVG','TABLE','THEAD','TBODY','TFOOT','TR','UL','OL','LI','SELECT','OPTION','PATH','SVG'].indexOf(tag)>=0)return false;
+      if(el.hasAttribute('data-ce'))return false;
+      if(!el.textContent||!el.textContent.trim())return false;
+      for(var i=0;i<el.children.length;i++){if(!isInline(el.children[i].tagName))return false;}
+      return true;
+    }
+    var wrap=document.querySelector('.wrap');
+    var eidx=0;
+    Array.prototype.forEach.call(wrap.querySelectorAll('*'),function(el){
+      var anc=el.closest('[data-eid]');
+      if(anc&&anc!==el)return;
+      if(!editableLeaf(el))return;
+      el.setAttribute('data-eid','e'+eidx);eidx++;
+    });
+    document.querySelectorAll('[data-eid]').forEach(function(el){
+      var id=el.getAttribute('data-eid');
+      if(tedits[id]!=null)el.textContent=tedits[id];
+      el.addEventListener('input',function(){tedits[id]=el.textContent;lset(TEDIT,tedits);afterChange();});
+      el.addEventListener('click',function(e){if(editing&&el.closest('label'))e.preventDefault();});
     });
 
     updProgress();
