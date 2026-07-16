@@ -225,6 +225,39 @@
   .edit-h{font-size:13px;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;gap:7px;color:var(--ink)}
   .edit-h span{font-size:16px}
   .synced{font-size:10.5px;color:var(--muted);margin:6px 2px 0;line-height:1.5}
+  /* collapsible header */
+  .bookToggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    font-family:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);padding:11px 13px;margin-top:12px;cursor:pointer}
+  .bookToggle .chev{transition:transform .2s;font-size:11px;color:var(--muted)}
+  body.book-collapsed .book{display:none}
+  body.book-collapsed .bookToggle .chev{transform:rotate(-90deg)}
+  /* edit mode */
+  .editToggle{position:fixed;right:14px;bottom:16px;z-index:40;background:var(--jade);color:#fff;border:0;
+    border-radius:24px;font-family:inherit;font-size:13px;font-weight:800;padding:11px 17px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28);cursor:pointer}
+  body.editing .editToggle{background:var(--verm)}
+  .stop .editctl,.ci .editctl{display:none}
+  body.editing .stop .editctl{display:flex;gap:5px;margin-top:8px}
+  body.editing .ci .editctl{display:inline-flex;gap:4px;margin-left:auto;flex:0 0 auto}
+  .editctl button{font-family:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);
+    background:var(--surface2);color:var(--ink2);border-radius:7px;padding:3px 8px;cursor:pointer;line-height:1.2}
+  .editctl button.del{color:var(--verm);border-color:var(--verm)}
+  body.editing .scard [contenteditable]{outline:1px dashed var(--line);border-radius:6px;padding:1px 4px}
+  body.editing .scard [contenteditable]:focus{outline:2px solid var(--jade);background:var(--surface2)}
+  body.editing .ci .tx[contenteditable]{outline:1px dashed var(--line);border-radius:6px;padding:0 3px}
+  .addstop{display:none}
+  body.editing .addstop{display:inline-flex;align-items:center;gap:5px;margin:2px 0 6px 0;
+    font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--jade);
+    border:0;border-radius:20px;padding:6px 13px;cursor:pointer}
+  .editmode-hint{display:none}
+  body.editing .editmode-hint{display:block;font-size:11.5px;color:var(--verm);font-weight:700;margin:2px 2px 10px}
+  .syncbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+  .syncbox label{font-size:12px;font-weight:800;color:var(--jade);display:block;margin-bottom:6px}
+  .syncbox input{width:100%;box-sizing:border-box;font-family:inherit;font-size:12px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--ink)}
+  .syncbox .st{font-size:11px;color:var(--muted);margin-top:6px}
+  .syncbox .st.ok{color:var(--jade);font-weight:700}
 </style>
 </head>
 <body>
@@ -244,7 +277,8 @@
   </div>
 
   <div class="pad">
-    <div class="book">
+    <button class="bookToggle" id="bookToggle" type="button" aria-expanded="true">✈️ 予約情報・移動の鉄則<span class="chev">▾</span></button>
+    <div class="book" id="book">
       <div class="bcard">
         <div class="bh">✈️ 往路 · 7C1106 <span class="d">7/18(土)</span></div>
         <div class="flt">
@@ -294,6 +328,7 @@
   <!-- ITINERARY -->
   <div class="panel on pad" id="itin" role="tabpanel">
     <div class="sect-h"><span class="ic">🗺</span><div><h2>行き先マップ</h2><p>明洞(★)が拠点。ピンの色＝何日目</p></div></div>
+    <p class="editmode-hint">✏️ 編集モード中：時間・タイトル・説明を直接タップで書き換え／各予定の ↑↓ で並び替え・✕ で削除・「＋予定を追加」で追加できます。右下の🔴で終了。</p>
     <div class="mapcard">
       <svg viewBox="0 0 340 300" width="100%" role="img" aria-label="ソウル中心部の行き先マップ">
         <rect x="0" y="0" width="340" height="300" fill="var(--surface2)" rx="8"/>
@@ -813,6 +848,14 @@
       <div class="addrow"><input class="t" placeholder="やることを追加…" aria-label="準備を追加"><button type="button">追加</button></div>
     </div>
     <button class="reset" data-reset="prep">チェックをリセット</button>
+
+    <div class="edit-h"><span>🔄</span>二人で同期（任意）</div>
+    <div class="syncbox">
+      <label for="syncUrl">同期用URL（自分のGAS WebアプリのexecURL）</label>
+      <input id="syncUrl" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/……/exec" autocomplete="off">
+      <div class="st" id="syncStatus">未設定：この端末だけに保存されます</div>
+      <p class="synced" style="margin-top:8px">ここにURLを入れると、追記・編集・チェックが二人の間で同期します（最後に触った方が最新）。データはあなた自身のGoogleに保存されます。GASのコードと手順は担当に確認を。</p>
+    </div>
   </div>
 
   <!-- TALK -->
@@ -889,10 +932,45 @@
     <p class="foot">よい旅を！ 서울에서 즐거운 여행 되세요 🇰🇷<br>チェック状態はこの端末に保存されます</p>
   </div>
 
+  <button class="editToggle" id="editToggle" type="button">✏️ 編集</button>
 </div>
 
 <script>
   (function(){
+    function lget(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+    function lset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+    function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+    // ---- sync scaffolding (active only when a sync URL is set) ----
+    var SYNC_URL='seoul-sync-url',UPD='seoul-updatedAt',APPLIED='seoul-sync-applied';
+    var UI_KEYS={'seoul-book-collapsed':1};
+    function syncUrl(){return localStorage.getItem(SYNC_URL)||''}
+    function collectState(){var d={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('seoul-')===0&&k!==SYNC_URL&&k!==UPD&&k!==APPLIED&&!UI_KEYS[k])d[k]=localStorage.getItem(k);}return d;}
+    var pushT=null;
+    function afterChange(){localStorage.setItem(UPD,String(Date.now()));if(syncUrl()){if(pushT)clearTimeout(pushT);pushT=setTimeout(pushNow,1400);}}
+    function setSync(msg,ok){var e=document.getElementById('syncStatus');if(e){e.textContent=msg;e.className='st'+(ok?' ok':'');}}
+    function pushNow(){var u=syncUrl();if(!u)return;var p={updatedAt:Number(localStorage.getItem(UPD))||Date.now(),data:collectState()};
+      fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
+        .then(function(){localStorage.setItem(APPLIED,String(p.updatedAt));setSync('同期OK：最後に触った方が最新',true);})
+        .catch(function(){setSync('同期エラー（次回再試行）',false);});}
+    function pullNow(){var u=syncUrl();if(!u)return;
+      fetch(u+(u.indexOf('?')<0?'?':'&')+'r='+Date.now()).then(function(r){return r.json();}).then(function(j){
+        if(!j||!j.updatedAt)return;
+        var loc=Number(localStorage.getItem(UPD))||0,app=Number(localStorage.getItem(APPLIED))||0;
+        if(j.updatedAt<=app||j.updatedAt<=loc)return;
+        var d=j.data||{};if(JSON.stringify(d)===JSON.stringify(collectState())){localStorage.setItem(APPLIED,String(j.updatedAt));return;}
+        var rm=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('seoul-')===0&&k!==SYNC_URL&&k!==UPD&&k!==APPLIED&&!UI_KEYS[k]&&!(k in d))rm.push(k);}
+        rm.forEach(function(k){localStorage.removeItem(k)});
+        Object.keys(d).forEach(function(k){localStorage.setItem(k,d[k])});
+        localStorage.setItem(UPD,String(j.updatedAt));localStorage.setItem(APPLIED,String(j.updatedAt));
+        location.reload();
+      }).catch(function(){});}
+    var syncInput=document.getElementById('syncUrl');
+    if(syncInput){syncInput.value=syncUrl();setSync(syncUrl()?'同期ON：最後に触った方が最新':'未設定：この端末だけに保存されます',!!syncUrl());
+      syncInput.addEventListener('change',function(){var v=syncInput.value.trim();if(v)localStorage.setItem(SYNC_URL,v);else localStorage.removeItem(SYNC_URL);setSync(v?'同期ON：最後に触った方が最新':'未設定：この端末だけに保存されます',!!v);if(v){pullNow();pushNow();}});}
+    if(syncUrl()){pullNow();window.addEventListener('focus',pullNow);setInterval(pullNow,20000);}
+
+    // ---- tabs (keep scroll position; don't jump to top) ----
     var tabs=document.querySelectorAll('.tab');
     var panels=document.querySelectorAll('.panel');
     tabs.forEach(function(t){
@@ -901,62 +979,85 @@
         t.setAttribute('aria-selected','true');
         panels.forEach(function(p){p.classList.remove('on')});
         document.getElementById(t.dataset.t).classList.add('on');
-        window.scrollTo({top:0,behavior:'smooth'});
+        var tb=document.querySelector('.tabs');
+        var absTop=tb.getBoundingClientRect().top+window.pageYOffset;
+        if(window.pageYOffset<absTop)window.scrollTo(0,absTop);
       });
     });
 
+    // ---- collapsible header ----
+    var bt=document.getElementById('bookToggle');
+    if(localStorage.getItem('seoul-book-collapsed')==='1')document.body.classList.add('book-collapsed');
+    if(bt){bt.setAttribute('aria-expanded',document.body.classList.contains('book-collapsed')?'false':'true');
+      bt.addEventListener('click',function(){var c=document.body.classList.toggle('book-collapsed');bt.setAttribute('aria-expanded',c?'false':'true');localStorage.setItem('seoul-book-collapsed',c?'1':'0');});}
+
+    // ---- Google Maps links: make the map action explicit, open in new tab ----
+    document.querySelectorAll('.maplink').forEach(function(a){
+      a.textContent=a.textContent.replace(/^📷\s*/,'🗺 ');
+      a.setAttribute('target','_blank');a.setAttribute('rel','noopener');
+    });
+
+    // ---- base checklist state ----
     var KEY='seoul-trip-checks-v1';
-    var state={};
-    try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){state={}}
-    function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+    var state={};try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){state={}}
+    function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}afterChange();}
     function updProgress(){
       document.querySelectorAll('.clist').forEach(function(list){
         var boxes=list.querySelectorAll('input[type=checkbox]');
         var done=0;boxes.forEach(function(b){if(b.checked)done++});
-        var p=list.querySelector('.progress');
-        if(p)p.textContent=done+'/'+boxes.length;
+        var p=list.querySelector('.progress');if(p)p.textContent=done+'/'+boxes.length;
       });
     }
     document.querySelectorAll('input[type=checkbox][data-k]').forEach(function(cb){
       if(state[cb.dataset.k])cb.checked=true;
-      cb.addEventListener('change',function(){
-        state[cb.dataset.k]=cb.checked;save();updProgress();
-      });
+      cb.addEventListener('change',function(){state[cb.dataset.k]=cb.checked;save();updProgress();});
     });
-    updProgress();
 
     document.querySelectorAll('[data-reset]').forEach(function(btn){
       btn.addEventListener('click',function(){
         var panel=btn.closest('.panel');
-        panel.querySelectorAll('input[type=checkbox][data-k]').forEach(function(cb){
-          cb.checked=false;state[cb.dataset.k]=false;
-        });
+        panel.querySelectorAll('input[type=checkbox][data-k]').forEach(function(cb){cb.checked=false;state[cb.dataset.k]=false;});
         save();updProgress();
       });
     });
 
-    // ---- in-page editing (saved on this device) ----
-    function lget(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
-    function lset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-    function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+    // ---- edit mode ----
+    var editing=false;
+    var editBtn=document.getElementById('editToggle');
+    function applyEditable(on){
+      document.querySelectorAll('#itin [data-ce]').forEach(function(el){el.contentEditable=on?'true':'false';});
+      document.querySelectorAll('.clist[data-custom] .citems .tx').forEach(function(tx){tx.contentEditable=on?'true':'false';});
+    }
+    function setEditing(on){editing=on;document.body.classList.toggle('editing',on);if(editBtn)editBtn.textContent=on?'✓ 完了':'✏️ 編集';applyEditable(on);}
+    if(editBtn)editBtn.addEventListener('click',function(){setEditing(!editing);});
 
+    // ---- custom lists (add / edit / reorder / delete) ----
     document.querySelectorAll('.clist[data-custom]').forEach(function(list){
       var key='seoul-custom-'+list.dataset.custom;
       var items=lget(key)||[];
       var box=list.querySelector('.citems');
       var input=list.querySelector('.addrow .t');
       var btn=list.querySelector('.addrow button');
-      function persist(){lset(key,items)}
+      function persist(){lset(key,items);afterChange();}
+      function move(i,dir){var j=i+dir;if(j<0||j>=items.length)return;var t=items[i];items[i]=items[j];items[j]=t;persist();render();}
       function render(){
         box.textContent='';
-        items.forEach(function(it){
+        items.forEach(function(it,idx){
           var l=document.createElement('label');l.className='ci';
           var cb=document.createElement('input');cb.type='checkbox';cb.checked=!!it.done;
           cb.addEventListener('change',function(){it.done=cb.checked;persist();updProgress();});
-          var tx=document.createElement('span');tx.className='tx';tx.textContent=it.text;
+          var tx=document.createElement('span');tx.className='tx';tx.textContent=it.text;tx.contentEditable=editing?'true':'false';
+          tx.addEventListener('click',function(e){if(editing)e.preventDefault();});
+          tx.addEventListener('input',function(){it.text=tx.textContent;lset(key,items);afterChange();});
+          var ctl=document.createElement('span');ctl.className='editctl';
+          var up=mk('↑'),dn=mk('↓'),rm=mk('✕','del');
+          up.addEventListener('click',function(e){e.preventDefault();move(idx,-1);});
+          dn.addEventListener('click',function(e){e.preventDefault();move(idx,1);});
+          rm.addEventListener('click',function(e){e.preventDefault();items=items.filter(function(x){return x.id!==it.id});persist();render();updProgress();});
+          ctl.appendChild(up);ctl.appendChild(dn);ctl.appendChild(rm);
           var del=document.createElement('button');del.type='button';del.className='delx';del.textContent='✕';del.setAttribute('aria-label','削除');
           del.addEventListener('click',function(e){e.preventDefault();items=items.filter(function(x){return x.id!==it.id});persist();render();updProgress();});
-          l.appendChild(cb);l.appendChild(tx);l.appendChild(del);box.appendChild(l);
+          l.appendChild(cb);l.appendChild(tx);l.appendChild(ctl);l.appendChild(del);box.appendChild(l);
         });
         updProgress();
       }
@@ -965,32 +1066,24 @@
       input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add();}});
       render();
     });
+    function mk(txt,cls){var b=document.createElement('button');b.type='button';b.textContent=txt;if(cls)b.className=cls;return b;}
 
+    // ---- budget custom ----
     (function(){
-      var list=document.querySelector('.clist[data-budget]');
-      if(!list)return;
-      var key='seoul-budget-custom';
-      var items=lget(key)||[];
-      var box=list.querySelector('.citems');
-      var ti=list.querySelector('.addrow .t');
-      var ai=list.querySelector('.addrow .amt');
-      var btn=list.querySelector('.addrow button');
-      var sumEl=list.querySelector('.bsum');
-      function persist(){lset(key,items)}
+      var list=document.querySelector('.clist[data-budget]');if(!list)return;
+      var key='seoul-budget-custom';var items=lget(key)||[];
+      var box=list.querySelector('.citems'),ti=list.querySelector('.addrow .t'),ai=list.querySelector('.addrow .amt'),btn=list.querySelector('.addrow button'),sumEl=list.querySelector('.bsum');
+      function persist(){lset(key,items);afterChange();}
       function yen(n){return '¥'+Math.round(n).toLocaleString('ja-JP')}
-      function render(){
-        box.textContent='';var total=0;
-        items.forEach(function(it){
-          total+=Number(it.amt)||0;
+      function render(){box.textContent='';var total=0;
+        items.forEach(function(it){total+=Number(it.amt)||0;
           var l=document.createElement('label');l.className='ci';
           var tx=document.createElement('span');tx.className='tx';tx.textContent=it.text;
           var am=document.createElement('span');am.className='amt-tag';am.textContent=yen(it.amt);
           var del=document.createElement('button');del.type='button';del.className='delx wamt';del.textContent='✕';del.setAttribute('aria-label','削除');
           del.addEventListener('click',function(e){e.preventDefault();items=items.filter(function(x){return x.id!==it.id});persist();render();});
-          l.appendChild(tx);l.appendChild(am);l.appendChild(del);box.appendChild(l);
-        });
-        sumEl.textContent=yen(total);
-      }
+          l.appendChild(tx);l.appendChild(am);l.appendChild(del);box.appendChild(l);});
+        sumEl.textContent=yen(total);}
       function add(){var v=(ti.value||'').trim();var a=parseInt((ai.value||'').replace(/[^0-9]/g,''),10);if(!v||!a)return;items.push({id:uid(),text:v,amt:a});ti.value='';ai.value='';persist();render();}
       btn.addEventListener('click',add);
       ai.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add();}});
@@ -998,18 +1091,72 @@
       render();
     })();
 
+    // ---- memos ----
     document.querySelectorAll('textarea[data-memo]').forEach(function(t){
-      var key='seoul-memo-'+t.dataset.memo;
-      var v=lget(key);if(typeof v==='string')t.value=v;
-      t.addEventListener('input',function(){lset(key,t.value)});
+      var key='seoul-memo-'+t.dataset.memo;var v=lget(key);if(typeof v==='string')t.value=v;
+      t.addEventListener('input',function(){lset(key,t.value);afterChange();});
     });
 
+    // ---- itinerary editing (edit text / reorder / add / delete) ----
+    var ITIN='seoul-itin-v1';
+    var itin=lget(ITIN)||{overrides:{},deleted:{},order:{},added:{}};
+    itin.overrides=itin.overrides||{};itin.deleted=itin.deleted||{};itin.order=itin.order||{};itin.added=itin.added||{};
+    var itinT=null;function itinSave(){lset(ITIN,itin);if(itinT)clearTimeout(itinT);itinT=setTimeout(afterChange,500);}
+    function findAdded(sid){for(var dk in itin.added){var a=itin.added[dk];for(var i=0;i<a.length;i++)if(a[i].id===sid)return a[i];}return null;}
+    function recordOrders(){document.querySelectorAll('#itin .day').forEach(function(day){var tl=day.querySelector('.tl');if(!tl)return;var ids=[];Array.prototype.forEach.call(tl.querySelectorAll('.stop'),function(s){ids.push(s.dataset.sid);});itin.order[day.dataset.day]=ids;});}
+    function buildStop(id,data){
+      var stop=document.createElement('div');stop.className='stop';stop.dataset.sid=id;
+      var card=document.createElement('div');card.className='scard';
+      var top=document.createElement('div');top.className='top';
+      var em=document.createElement('span');em.className='emoji';em.textContent='📍';
+      var body=document.createElement('div');
+      var time=document.createElement('div');time.className='time';time.textContent=data.time||'';
+      var h=document.createElement('h4');h.textContent=data.title||'';
+      var d=document.createElement('p');d.className='desc';d.textContent=data.desc||'';
+      body.appendChild(time);body.appendChild(h);body.appendChild(d);
+      top.appendChild(em);top.appendChild(body);card.appendChild(top);stop.appendChild(card);
+      return stop;
+    }
+    function wireEditable(stop){
+      var sid=stop.dataset.sid;
+      [['time',stop.querySelector('.time')],['title',stop.querySelector('h4')],['desc',stop.querySelector('.desc')]].forEach(function(pr){
+        var field=pr[0],el=pr[1];if(!el)return;el.setAttribute('data-ce','1');
+        el.addEventListener('input',function(){var val=el.textContent;var a=findAdded(sid);if(a){a[field]=val;}else{itin.overrides[sid]=itin.overrides[sid]||{};itin.overrides[sid][field]=val;}itinSave();});
+      });
+    }
+    function addStopControls(stop){
+      if(stop.querySelector('.editctl'))return;
+      var body=stop.querySelector('.top > div');if(!body)return;
+      var ctl=document.createElement('div');ctl.className='editctl';
+      var up=mk('↑'),dn=mk('↓'),rm=mk('✕','del');
+      up.addEventListener('click',function(){var p=stop.previousElementSibling;while(p&&!p.classList.contains('stop'))p=p.previousElementSibling;if(p)stop.parentNode.insertBefore(stop,p);recordOrders();itinSave();});
+      dn.addEventListener('click',function(){var n=stop.nextElementSibling;while(n&&!n.classList.contains('stop'))n=n.nextElementSibling;if(n)stop.parentNode.insertBefore(n,stop);recordOrders();itinSave();});
+      rm.addEventListener('click',function(){var sid=stop.dataset.sid;var a=findAdded(sid);if(a){for(var dk in itin.added)itin.added[dk]=itin.added[dk].filter(function(x){return x.id!==sid;});stop.remove();}else{itin.deleted[sid]=1;stop.style.display='none';}recordOrders();itinSave();});
+      ctl.appendChild(up);ctl.appendChild(dn);ctl.appendChild(rm);body.appendChild(ctl);
+    }
+    document.querySelectorAll('#itin .day').forEach(function(day,di){
+      day.dataset.day='d'+di;var tl=day.querySelector('.tl');if(!tl)return;
+      Array.prototype.forEach.call(tl.querySelectorAll('.stop'),function(stop,si){if(!stop.dataset.sid)stop.dataset.sid='d'+di+'s'+si;});
+      (itin.added['d'+di]||[]).forEach(function(a){tl.appendChild(buildStop(a.id,a));});
+      Array.prototype.forEach.call(tl.querySelectorAll('.stop'),function(stop){
+        var sid=stop.dataset.sid;
+        if(itin.deleted[sid]){stop.style.display='none';}
+        var ov=itin.overrides[sid];
+        if(ov){var t=stop.querySelector('.time'),h=stop.querySelector('h4'),d=stop.querySelector('.desc');if(ov.time!=null&&t)t.textContent=ov.time;if(ov.title!=null&&h)h.textContent=ov.title;if(ov.desc!=null&&d)d.textContent=ov.desc;}
+        addStopControls(stop);wireEditable(stop);
+      });
+      var ord=itin.order['d'+di];
+      if(ord&&ord.length){ord.forEach(function(sid){var node=tl.querySelector('.stop[data-sid="'+sid+'"]');if(node)tl.appendChild(node);});}
+      var addBtn=document.createElement('button');addBtn.type='button';addBtn.className='addstop';addBtn.textContent='＋ 予定を追加';
+      addBtn.addEventListener('click',function(){var id='a'+di+'_'+uid();var data={id:id,time:'時間',title:'新しい予定',desc:''};itin.added['d'+di]=itin.added['d'+di]||[];itin.added['d'+di].push(data);var node=buildStop(id,data);tl.appendChild(node);addStopControls(node);wireEditable(node);recordOrders();itinSave();applyEditable(true);var h=node.querySelector('h4');if(h){h.focus();}});
+      tl.parentNode.insertBefore(addBtn,tl.nextSibling);
+    });
+
+    updProgress();
+    setEditing(false);
+
     // offline support: cache the page so it opens without internet (airplane mode)
-    try{
-      if('serviceWorker' in navigator && location.protocol==='https:'){
-        navigator.serviceWorker.register('sw.js').catch(function(){});
-      }
-    }catch(e){}
+    try{if('serviceWorker' in navigator && location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(function(){});}}catch(e){}
   })();
 </script>
 
