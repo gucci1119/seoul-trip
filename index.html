@@ -205,6 +205,26 @@
   .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:22px}
   .reset{background:transparent;border:1px solid var(--line);color:var(--muted);font-family:inherit;
     font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;margin-top:8px}
+  /* in-page editing */
+  .addrow{display:flex;gap:7px;padding:9px 12px;border-top:1px solid var(--line);align-items:center}
+  .addrow input{flex:1;min-width:0;font-family:inherit;font-size:13px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--ink)}
+  .addrow input.amt{flex:0 0 84px;text-align:right;font-variant-numeric:tabular-nums}
+  .addrow button{flex:0 0 auto;font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;
+    background:var(--jade);border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
+  .ci .delx{margin-left:auto;flex:0 0 auto;background:transparent;border:0;color:var(--muted);
+    font-size:15px;line-height:1;cursor:pointer;padding:0 2px}
+  .ci .amt-tag{margin-left:auto;flex:0 0 auto;font-size:12px;font-weight:700;color:var(--ink2);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ci .delx.wamt{margin-left:8px}
+  .btotal{display:flex;justify-content:space-between;font-weight:800;padding:10px 12px;
+    background:var(--surface2);border-top:2px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums}
+  .memo{width:100%;min-height:96px;box-sizing:border-box;font-family:inherit;font-size:13px;padding:11px;
+    border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);
+    line-height:1.6;resize:vertical}
+  .edit-h{font-size:13px;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;gap:7px;color:var(--ink)}
+  .edit-h span{font-size:16px}
+  .synced{font-size:10.5px;color:var(--muted);margin:6px 2px 0;line-height:1.5}
 </style>
 </head>
 <body>
@@ -557,6 +577,9 @@
       </div>
     </div>
     <p class="credits">📷 観光地の写真：Wikimedia Commons より — 景福宮・北村 © Basile Morin ／ 明洞 © Christian Bolz ／ Nソウルタワー © Matt Kieffer ／ 東大門DDP © Eugene Lim（CC BY / CC BY-SA）。カフェ・レストランの写真は各スポットの📷リンクからご覧ください。</p>
+    <div class="edit-h"><span>📝</span>旅程メモ・追記（自由記入）</div>
+    <textarea class="memo" data-memo="itin" placeholder="行きたい店の候補、予約メモ、時間の変更、気づいたこと…なんでも。自動保存されます。"></textarea>
+    <p class="synced">※このメモはこの端末に保存されます。二人で共有したい変更（お店の追加・時間変更など）は、担当者に伝えれば同じURLの本文に反映できます。</p>
   </div>
 
   <!-- WEATHER -->
@@ -630,6 +653,14 @@
     <div class="note"><span class="ni">💳</span><div>決済は <b>クレカ＋WOWPASS</b> が基本。WOWPASSは支払い・地下鉄・帰りのリムジンバスが1枚で完結。現金（ウォン）は屋台用に数千〜1万円分だけ。</div></div>
     <div class="note"><span class="ni">🧾</span><div><b>Tax Refund（免税還付）</b>：一定額以上の買い物はパスポート提示でレシート受取 → 空港カウンターで還付。</div></div>
     <div class="note"><span class="ni">🛡</span><div><b>別途：通信＋保険</b>（出発前の準備費）<br>トリファeSIM 約 ¥3,400〜6,900（2名・無制限4日）＋ 海外旅行保険 約 ¥3,000〜4,000（2名・ネット型）。</div></div>
+
+    <div class="edit-h"><span>✍️</span>使ったお金メモ（自由に追加）</div>
+    <div class="clist" data-budget="1">
+      <div class="citems"></div>
+      <div class="addrow"><input class="t" placeholder="項目（例：焼肉）" aria-label="費用の項目"><input class="amt" inputmode="numeric" placeholder="¥" aria-label="金額"><button type="button">追加</button></div>
+      <div class="btotal"><span>追加の合計</span><span class="bsum">¥0</span></div>
+    </div>
+    <p class="synced">※この費用メモはこの端末に保存されます（家計簿代わりに）。</p>
   </div>
 
   <!-- PACKING -->
@@ -671,6 +702,11 @@
       <label class="ci"><input type="checkbox" data-k="m4"><span class="tx">ウェットティッシュ・ジップロック</span></label>
       <label class="ci"><input type="checkbox" data-k="m5"><span class="tx">眼鏡 / コンタクト予備</span></label>
     </div>
+    <div class="clist" data-custom="pack">
+      <div class="gh">✍️ 自分で追加 <span class="progress"></span></div>
+      <div class="citems"></div>
+      <div class="addrow"><input class="t" placeholder="持ち物を追加…" aria-label="持ち物を追加"><button type="button">追加</button></div>
+    </div>
     <button class="reset" data-reset="pack">チェックをリセット</button>
   </div>
 
@@ -704,6 +740,11 @@
       <div class="gcard"><div class="ge">🍵</div><h4>ゆず茶・伝統茶</h4><p>仁寺洞・市場で</p></div>
     </div>
     <div class="note"><span class="ni">✈️</span><div>お酒・キムチ・コチュジャンなど<b>液体/汁物は預け荷物へ</b>（機内持込は100ml制限）。済州航空は<b>受託手荷物 各自15kg</b>まで、超過に注意。</div></div>
+    <div class="clist" data-custom="gift">
+      <div class="gh">✍️ 買うものを追加 <span class="progress"></span></div>
+      <div class="citems"></div>
+      <div class="addrow"><input class="t" placeholder="欲しいお土産を追加…" aria-label="お土産を追加"><button type="button">追加</button></div>
+    </div>
     <button class="reset" data-reset="gift">チェックをリセット</button>
   </div>
 
@@ -754,6 +795,11 @@
       <label class="ci"><input type="checkbox" data-k="in3"><span class="tx">2人とも保険がカバーされているか最終確認</span></label>
     </div>
     <div class="note"><span class="ni">🏥</span><div><b>なぜ必須か</b>：韓国では日本の健康保険が使えず、胃腸炎・盲腸・ケガでの入院は数十万〜100万円以上が全額自己負担になり得ます。ネット保険なら数分・スマホで加入できます。</div></div>
+    <div class="clist" data-custom="prep">
+      <div class="gh">✍️ 自分で追加 <span class="progress"></span></div>
+      <div class="citems"></div>
+      <div class="addrow"><input class="t" placeholder="やることを追加…" aria-label="準備を追加"><button type="button">追加</button></div>
+    </div>
     <button class="reset" data-reset="prep">チェックをリセット</button>
   </div>
 
@@ -875,6 +921,75 @@
         });
         save();updProgress();
       });
+    });
+
+    // ---- in-page editing (saved on this device) ----
+    function lget(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+    function lset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+    function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+    document.querySelectorAll('.clist[data-custom]').forEach(function(list){
+      var key='seoul-custom-'+list.dataset.custom;
+      var items=lget(key)||[];
+      var box=list.querySelector('.citems');
+      var input=list.querySelector('.addrow .t');
+      var btn=list.querySelector('.addrow button');
+      function persist(){lset(key,items)}
+      function render(){
+        box.textContent='';
+        items.forEach(function(it){
+          var l=document.createElement('label');l.className='ci';
+          var cb=document.createElement('input');cb.type='checkbox';cb.checked=!!it.done;
+          cb.addEventListener('change',function(){it.done=cb.checked;persist();updProgress();});
+          var tx=document.createElement('span');tx.className='tx';tx.textContent=it.text;
+          var del=document.createElement('button');del.type='button';del.className='delx';del.textContent='✕';del.setAttribute('aria-label','削除');
+          del.addEventListener('click',function(e){e.preventDefault();items=items.filter(function(x){return x.id!==it.id});persist();render();updProgress();});
+          l.appendChild(cb);l.appendChild(tx);l.appendChild(del);box.appendChild(l);
+        });
+        updProgress();
+      }
+      function add(){var v=(input.value||'').trim();if(!v)return;items.push({id:uid(),text:v,done:false});input.value='';persist();render();}
+      btn.addEventListener('click',add);
+      input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add();}});
+      render();
+    });
+
+    (function(){
+      var list=document.querySelector('.clist[data-budget]');
+      if(!list)return;
+      var key='seoul-budget-custom';
+      var items=lget(key)||[];
+      var box=list.querySelector('.citems');
+      var ti=list.querySelector('.addrow .t');
+      var ai=list.querySelector('.addrow .amt');
+      var btn=list.querySelector('.addrow button');
+      var sumEl=list.querySelector('.bsum');
+      function persist(){lset(key,items)}
+      function yen(n){return '¥'+Math.round(n).toLocaleString('ja-JP')}
+      function render(){
+        box.textContent='';var total=0;
+        items.forEach(function(it){
+          total+=Number(it.amt)||0;
+          var l=document.createElement('label');l.className='ci';
+          var tx=document.createElement('span');tx.className='tx';tx.textContent=it.text;
+          var am=document.createElement('span');am.className='amt-tag';am.textContent=yen(it.amt);
+          var del=document.createElement('button');del.type='button';del.className='delx wamt';del.textContent='✕';del.setAttribute('aria-label','削除');
+          del.addEventListener('click',function(e){e.preventDefault();items=items.filter(function(x){return x.id!==it.id});persist();render();});
+          l.appendChild(tx);l.appendChild(am);l.appendChild(del);box.appendChild(l);
+        });
+        sumEl.textContent=yen(total);
+      }
+      function add(){var v=(ti.value||'').trim();var a=parseInt((ai.value||'').replace(/[^0-9]/g,''),10);if(!v||!a)return;items.push({id:uid(),text:v,amt:a});ti.value='';ai.value='';persist();render();}
+      btn.addEventListener('click',add);
+      ai.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add();}});
+      ti.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();ai.focus();}});
+      render();
+    })();
+
+    document.querySelectorAll('textarea[data-memo]').forEach(function(t){
+      var key='seoul-memo-'+t.dataset.memo;
+      var v=lget(key);if(typeof v==='string')t.value=v;
+      t.addEventListener('input',function(){lset(key,t.value)});
     });
   })();
 </script>
