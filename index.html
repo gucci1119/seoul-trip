@@ -1390,6 +1390,30 @@
         var c=ref.children;c[0].textContent=yen(1000);c[1].textContent=yen(5000);c[2].textContent=yen(10000);c[3].textContent=yen(50000);}
       won.addEventListener('input',upd);rate.addEventListener('input',upd);upd();
     })();
+    (function(){try{
+      var R={"뼈해장국":"ピョヘジャングク","골든볼약과":"ゴールデンボールヤックァ","크림약과":"クリムヤックァ","남대문시장":"ナムデムンシジャン","신나라레코드":"シンナラレコード","기후동행카드":"キフドンヘンカードゥ","불닭볶음면":"プルダックポックンミョン","뮤직코리아":"ミュージックコリア","캐치테이블":"キャッチテーブル","초코츄러스":"チョコチュロス","허니버터칩":"ハニーバターチプ","연세우유":"ヨンセウユ","된장찌개":"テンジャンチゲ","생태찌개":"センテチゲ","삼보식당":"サンボシクタン","감자탕":"カムジャタン","칼국수":"カルグクス","삼겹살":"サムギョプサル","북어국":"プゴク","청국장":"チョングクチャン","먹태깡":"モクテッカン","꼬북칩":"コブックチップ","개성주악":"ケソンジュアク","지구젤리":"チグジェリ","노브랜드":"ノーブランド","롯데마트":"ロッテマート","남대문로":"ナムデムンノ","더현대":"ドヒョンデ","올리브영":"オリーブヨン","크림빵":"クリムパン","따릉이":"ッタルンイ","어성초":"オソンチョ","목살":"モクサル","만두":"マンドゥ","약과":"ヤックァ","빼빼로":"ペペロ","이마트":"イマート","다이소":"ダイソー","명동":"ミョンドン","성수":"ソンス"};
+      var terms=Object.keys(R).sort(function(a,b){return b.length-a.length;});
+      var talk=document.getElementById('talk'), root=document.querySelector('.wrap');
+      var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), list=[];
+      while(w.nextNode()){var n=w.currentNode; if(talk&&talk.contains(n))continue; if(!/[가-힣]/.test(n.nodeValue))continue; list.push(n);}
+      list.forEach(function(n){
+        var s=n.nodeValue, orig=s;
+        for(var ti=0;ti<terms.length;ti++){
+          var t=terms[ti], idx=0, out="";
+          while(true){
+            var pos=s.indexOf(t,idx);
+            if(pos<0){out+=s.slice(idx);break;}
+            out+=s.slice(idx,pos+t.length);
+            var a1=s.charAt(pos+t.length), a2=s.charAt(pos+t.length+1);
+            var already=(a1==="（"||a1==="(")&&/[\u30A0-\u30FF]/.test(a2);
+            if(!already){out+="("+R[t]+")";}
+            idx=pos+t.length;
+          }
+          s=out;
+        }
+        if(s!==orig)n.nodeValue=s;
+      });
+    }catch(e){}})();
     // offline support: cache the page so it opens without internet (airplane mode)
     try{if('serviceWorker' in navigator && location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(function(){});}}catch(e){}
   })();
